@@ -49,8 +49,8 @@ function print(image, products, doc) {
           sum += row.quan * row.price;
           printer
           .align("LT")
-          .text(row.product.description)
-          .table([row.product.brand.description, `ID №${row.product.id}`])
+          .text(row.description)
+          .table([row.brand, `ID №${row.id}`])
           .table([`${row.quan} x ${row.price} грн`, `${Math.round(row.quan * row.price * 100) / 100} грн`])
         })
         
