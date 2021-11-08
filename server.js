@@ -22,6 +22,18 @@ function printLabel(barcode, quan){
   })
 }
 
+// function print(image, products, doc) {
+//   var iconv = new Iconv('UTF-8', 'CP866');
+//   device.open(() => {
+//     device.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
+//     device.write(new Uint8Array([0x1b, 0x74, 17]));
+//     // device.write(new Uint8Array([0x1b, 0x7b, 0]));
+//     device.write(iconv.convert("Привет Мир!"))
+//     device.write("\n\n\n")
+    
+//   })
+// }
+
 function print(image, products, doc) {
     let date = new Date(doc.date);
     date = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.toLocaleTimeString()}`
@@ -72,7 +84,7 @@ function print(image, products, doc) {
 }
 
 function printCheck(products, doc){
-  escpos.Image.load("./logo2.png", image => {
+  escpos.Image.load("C:/Users/Serge/projects/webSocketPrinter/logo2.png", image => {
     if(image) print(image, products, doc);
   })
 }
