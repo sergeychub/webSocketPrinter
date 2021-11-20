@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const Iconv = require('iconv').Iconv;
 const wsServer = new WebSocket.Server({port: 9000});
 const escpos = require('escpos');
 escpos.USB = require('escpos-usb');
@@ -7,32 +8,107 @@ const device2  = new escpos.USB(devices.find(dev => dev.deviceDescriptor.idVendo
 const device  = new escpos.USB(devices.find(dev => dev.deviceDescriptor.idVendor === 1155 && dev.deviceDescriptor.idProduct === 1803));
 const options = { encoding: "CP866"}
 const printer = new escpos.Printer(device, options);
+const printer2 = new escpos.Printer(device2, options);
 
-function printLabel(barcode, quan){
+function printLabel(brand, article, barcode, quan, barcodeType = "EAN128"){
+
+  let barcodeWidth = 2;
+
+  if(barcodeType == "EAN128"){
+    barcodeWidth = 1;
+  }
+
   device2.open(err => {
     device2.write(`
     GAPDETECT
-    SPEED 4
+    SPEED 1
     DENSITY 8
-    DIRECTION 0
+    DIRECTION 1
     CLS
-    BARCODE 12,50,"128",50,1,0,1,1,"${barcode}"
+    TEXT 5,15,"2",0,1,1,"${brand}"
+    TEXT 5,40,"2",0,1,1,"${article}"
+    BARCODE 5,80,"${barcodeType}",50,1,0,${barcodeWidth},1,"${barcode}"
     PRINT ${quan} 
     `);
   })
 }
 
-// function print(image, products, doc) {
-//   var iconv = new Iconv('UTF-8', 'CP866');
-//   device.open(() => {
-//     device.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
-//     device.write(new Uint8Array([0x1b, 0x74, 17]));
-//     // device.write(new Uint8Array([0x1b, 0x7b, 0]));
-//     device.write(iconv.convert("Привет Мир!"))
-//     device.write("\n\n\n")
+function print3(name, brand, article, barcode) {
+  var iconv = new Iconv('UTF-8', 'CP866');
+  device2.open(() => {
+    device2.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
+    device2.write(new Uint8Array([0x1b, 0x74, 17])); // Установка кодировки
+    device2.write(new Uint8Array([0x1b, 0x21, 1])); // Установка шрифта
+    device2.write(new Uint8Array([0x1b, 0x7b, 1])); //Направление печати
+    device2.write(new Uint8Array([0x1b, 0x61, 0.48])); //margin
+    // device2.write(new Uint8Array([0x1d, 0x4c, 0,0])); //Отступ слева
+    // device2.write(new Uint8Array([0x1b, 0x4c])); // PAGE MODE
+    // device2.write(new Uint8Array([0x1b, 0x53])); // Standart mode
+    // device2.write(new Uint8Array([0x1b, 0x54, 3.51])); // DIRECTION
+    // device2.write(new Uint8Array([0x1d, 0x57, 104, 1])); // PAGE MODE
+    // device2.write(new Uint8Array([0x1d, 0x50, 100, 200])); // PAGE MODE
+    // device2.write(new Uint8Array([0x1b, 0x0c])); // PRINT IN PAGE MODE
+    // device2.write(new Uint8Array([0x1b, 0x57, 0, 0])); // PAGE MODE SET SIZE
+    device2.write(iconv.convert(article))
+    device2.write(new Uint8Array([0x0a])); //перенос строки
+    device2.write(iconv.convert(brand))
+    device2.write(new Uint8Array([0x0a])); //перенос строки
+    device2.write(iconv.convert(name))
+    device2.write(new Uint8Array([0x0a])); //перенос строки
+    device2.write(new Uint8Array([0x1d, 0x6b, 6,])); //перенос строки
+    device2.write(new Uint8Array([0x0a])); //перенос строки
+    device2.write(new Uint8Array([0x0a])); //перенос строки
+    device2.write(new Uint8Array([0x0a])); //перенос строки
     
-//   })
-// }
+    
+    // device2.write(new Uint8Array([0x0d]));
+    
+  })
+}
+
+// print3("Фильтр масляный", "MAHLE ORIGINAL", "OC90OF", generateEAN13(2))
+
+// printLabel("MAHLE ORIGINAL", "OC90OF", generateEAN13(2), 1, "EAN13")
+
+function print4(name, brand, article, barcode){
+  device2.open(err => {
+    device2.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
+    device2.write(new Uint8Array([0x1b, 0x74, 17]));
+    device2.write(new Uint8Array([0x1b, 0x7b, 1])); //Направление печати
+    device2.write(new Uint8Array([0x1b, 0x61, 0.48])); //margin
+    printer2
+    .size(0.01, 0.01)
+    .barcode('488888888888',"EAN13", 1, 50)
+    .text(article)
+    .text(brand)
+    .text(name)
+    .cut()
+    .close()
+  })
+}
+
+// print4("Фильтр масляный", "MAHLE ORGIGINAL", "OC90OF", "4009026000038");
+// printLabel("MAHLE", "OC90", "4820000000020", 1);
+
+
+function generateEAN13(id){
+
+  let newBarcode = String(482000000000 + id);
+  let controlSumEven = 0;
+  let controlSumOdd = 0;
+
+  Array.from(String(newBarcode), (num, index) => {
+    if(Number(index + 1) % 2) {
+      controlSumEven += Number(num)
+    } else {
+      controlSumOdd += Number(num)
+    }
+  })
+  controlSumOdd = controlSumOdd * 3;
+  let constrolSum = (Math.ceil((controlSumEven + controlSumOdd) / 10) * 10) - (controlSumEven + controlSumOdd);
+
+  return String(newBarcode).concat(String(constrolSum))
+}
 
 function print(image, products, doc) {
     let date = new Date(doc.date);
@@ -40,13 +116,14 @@ function print(image, products, doc) {
     device.open(function(error){
         device.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
         device.write(new Uint8Array([0x1b, 0x74, 17]));
-
+        device.write(new Uint8Array([0x1b, 0x7b, 0])); //Направление печати
         //IMAGE
         printer.align('ct').image(image, 'D24')
 
         //TEXT
         printer
           .size(0.01, 0.01)
+          .marginRight(0)
           .style("NORMAL")
           .text("АВТОФОРВАРД")
           .text("Магазин автозапчастин")
