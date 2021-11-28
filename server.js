@@ -110,7 +110,9 @@ function generateEAN13(id){
   return String(newBarcode).concat(String(constrolSum))
 }
 
-function print(image, products, doc) {
+
+
+function printExportDoc(image, products, doc) {
     let date = new Date(doc.date);
     date = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.toLocaleTimeString()}`
     device.open(function(error){
@@ -129,10 +131,9 @@ function print(image, products, doc) {
           .text("Магазин автозапчастин")
           .text("ФОП ЧУБ О.В.")
           .text("IПН 2843414164\n")
-          // .barcode('0000054', 'EAN8', 4, 50)
+          .barcode(String(200000000000 + doc.id), 'EAN13', 3, 30, "BLW", "A")
           .text(`${date}\n`)
           .text(`Товарний чек №${doc.id}\n`)
-          
         let sum = 0;
         products.forEach(row => {
           sum += row.quan * row.price;
@@ -148,30 +149,85 @@ function print(image, products, doc) {
           {text: "Сумма", style: "B"},
           {text: `${Math.round(sum * 100) / 100} грн`, style: "B"}
         ])
-        .cut()
-        .close()
-
-        // printer
-        // .qrimage('http://new.api.autof.com.ua/doc/export/check/59', function(err){
-        //   this.cut();
-        //   this.close();
-        // })
+        .qrimage(`http://new.api.autof.com.ua/doc/export/check/${doc.id}`, function(err){
+            this.cut();
+            this.close();
+        });
          
       });
 }
 
-function printCheck(products, doc){
-  escpos.Image.load("C:/Users/Serge/projects/webSocketPrinter/logo2.png", image => {
-    if(image) print(image, products, doc);
-  })
+function printReturnDoProviderDoc(image, products, doc){
+let date = new Date(doc.date);
+    date = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.toLocaleTimeString()}`
+    device.open(function(error){
+        device.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
+        device.write(new Uint8Array([0x1b, 0x74, 17]));
+        device.write(new Uint8Array([0x1b, 0x7b, 0])); //Направление печати
+        //IMAGE
+        printer.align('ct').image(image, 'D24')
+
+        //TEXT
+        printer
+          .size(0.01, 0.01)
+          .marginRight(0)
+          .style("NORMAL")
+          .text("АВТОФОРВАРД")
+          .text("Магазин автозапчастин\n")
+          .barcode(String(200000000000 + doc.id), 'EAN13', 3, 30, "BLW", "A")
+          .text("")
+          .text(`Повернення постачальнику №${doc.id}\n`)
+          .text("Постачальник:")
+          .text(doc.full_provider.replace(/і/g, "i").replace(/І/g, 'I') + "\n")
+          .text("Покепець:")
+          .text("ФОП ЧУБ О.В.")
+          .text("IПН 2843414164\n")
+          .text(`${date}\n`)
+        let sum = 0;
+        products.forEach(row => {
+          sum += row.quan * row.price;
+          printer
+          .align("LT")
+          .text(row.description)
+          .table([row.brand, `ID №${row.id}`])
+          .text(`${row.quan} x ${row.price} грн`)
+          .text(`${Math.round(row.quan * row.price * 100) / 100} грн\n`)
+        })
+        
+        printer
+        .text(`Сумма : ${Math.round(sum * 100) / 100} грн`)
+        .qrimage(`http://new.api.autof.com.ua/doc/return-to-provider/pdf/${doc.id}`, function(err){
+            this.cut();
+            this.close();
+        });
+         
+      });
 }
 
+function printCheck(products, doc, type){
+  escpos.Image.load("C:/Users/Serge/projects/webSocketPrinter/logo2.png", image => {
+    if(image) {
+      switch(type){
+        case "EXPORT_DOC":
+          printExportDoc(image, products, doc)
+        break;
+        case "RETURN_TO_PROVIDER":
+          printReturnDoProviderDoc(image, products, doc)
+        break;
+      }
+    };
+  })
+}
 
 function handleMessage(message){
     const data = JSON.parse(message);
     switch(data.action){
-        case "PRINT":
-            printCheck(data.data.products, {id: data.data.id , date: data.data.date_created})
+        case "PRINT_EXPORT_DOC":
+            printCheck(data.data.products, {id: data.data.id , date: data.data.date_created}, "EXPORT_DOC")
+        break;
+
+        case "PRINT_RETURN_TO_PROVIDER":
+          printCheck(data.data.products, data.data, "RETURN_TO_PROVIDER");
         break;
 
         case "PRINT_LABEL":
