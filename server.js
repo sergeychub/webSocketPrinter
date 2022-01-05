@@ -113,7 +113,7 @@ function generateEAN13(id){
 
 
 function printExportDoc(image, products, doc) {
-    let date = new Date(doc.date);
+    let date = new Date(doc.date_created);
     date = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.toLocaleTimeString()}`
     device.open(function(error){
         device.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
@@ -130,7 +130,7 @@ function printExportDoc(image, products, doc) {
           .text("АВТОФОРВАРД")
           .text("Магазин автозапчастин")
           .text("ФОП ЧУБ О.В.")
-          .text("IПН 2843414164\n")
+          .text("IД 2843414164\n")
           .barcode(String(200000000000 + doc.id), 'EAN13', 3, 30, "BLW", "A")
           .text(`${date}\n`)
           .text(`Товарний чек №${doc.id}\n`)
@@ -149,10 +149,18 @@ function printExportDoc(image, products, doc) {
           {text: "Сумма", style: "B"},
           {text: `${Math.round(sum * 100) / 100} грн`, style: "B"}
         ])
-        .qrimage(`http://new.api.autof.com.ua/doc/export/check/${doc.id}`, function(err){
-            this.cut();
-            this.close();
+        if(doc.fiscalCode) {
+          printer.text(`фiск. номер чека: ${doc.fiscalCode}`)
+          .align('ct').qrimage(doc.fiscalQR, { type: 'png', mode: 'dhdw', size: 3 }, function(err){
+          this.cut()
+          this.close()
+        })
+        } else {
+          printer.align('ct').qrimage(`http://new.api.autof.com.ua/doc/export/check/${doc.id}`, { type: 'png', mode: 'dhdw', size: 3 }, function(err){
+          this.cut()
+          this.close()
         });
+        }
          
       });
 }
@@ -219,11 +227,42 @@ function printCheck(products, doc, type){
   })
 }
 
+function printAssemblySheet(warehouse, products){
+  let date = new Date();
+    date = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.toLocaleTimeString()}`
+    device.open(function(error){
+        device.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
+        device.write(new Uint8Array([0x1b, 0x74, 17]));
+        device.write(new Uint8Array([0x1b, 0x7b, 0])); //Направление печати
+
+        //TEXT
+        printer
+          .size(0.01, 0.01)
+          .marginRight(0)
+          .style("NORMAL")
+          .text(`${date}\n`)
+          .text(`Сборочный лист\n`)
+        let sum = 0;
+        products.forEach(row => {
+          sum += row.quan * row.price;
+          printer
+          .align("LT")
+          .text(row.description)
+          .table([row.brand])
+          .table([row.article])
+          .table([`${row.quan} из ${row.nal}`, row.cell])
+        })
+        printer.cut().close();
+         
+      });
+}
+
+
 function handleMessage(message){
     const data = JSON.parse(message);
     switch(data.action){
         case "PRINT_EXPORT_DOC":
-            printCheck(data.data.products, {id: data.data.id , date: data.data.date_created}, "EXPORT_DOC")
+            printCheck(data.data.products, data.data, "EXPORT_DOC")
         break;
 
         case "PRINT_RETURN_TO_PROVIDER":
@@ -233,6 +272,10 @@ function handleMessage(message){
         case "PRINT_LABEL":
             printLabel(data.data.barcode, Number(data.data.quan))
         break;
+
+        case "PRINT_ASSEBLY_SHEET":
+          printAssemblySheet(data.data.warehouse, data.data.products);
+          break;
 
         default:
             return 
