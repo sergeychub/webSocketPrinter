@@ -1,294 +1,291 @@
-const WebSocket = require('ws');
-const Iconv = require('iconv').Iconv;
-const wsServer = new WebSocket.Server({port: 9000});
-const escpos = require('escpos');
-escpos.USB = require('escpos-usb');
-const devices = escpos.USB.findPrinter()
-const device2  = new escpos.USB(devices.find(dev => dev.deviceDescriptor.idVendor === 8137 && dev.deviceDescriptor.idProduct === 8214));
-const device  = new escpos.USB(devices.find(dev => dev.deviceDescriptor.idVendor === 1155 && dev.deviceDescriptor.idProduct === 1803));
-const options = { encoding: "CP866"}
-const printer = new escpos.Printer(device, options);
-const printer2 = new escpos.Printer(device2, options);
+escpos = require("escpos");
+escpos.USB = require("escpos-usb");
+devices = escpos.USB.findPrinter();
 
-function printLabel(brand, article, barcode, quan, barcodeType = "EAN128"){
+var thermalPrinterOptions = { encoding: "CP866" };
+const USBThermalPrinter = devices.find(
+  (dev) => dev.deviceDescriptor.idVendor === 1155
+);
+var legacyPrinter = USBThermalPrinter
+  ? new escpos.USB(USBThermalPrinter)
+  : undefined;
+var thermalPrinter = legacyPrinter
+  ? new escpos.Printer(legacyPrinter, thermalPrinterOptions)
+  : undefined;
 
-  let barcodeWidth = 2;
+const USBLabelPrinter = devices.find(
+  (dev) => dev.deviceDescriptor.idVendor === 8137
+);
 
-  if(barcodeType == "EAN128"){
-    barcodeWidth = 1;
-  }
+var legacyLabelPrinter = USBLabelPrinter
+  ? new escpos.USB(USBLabelPrinter)
+  : undefined;
 
-  device2.open(err => {
-    device2.write(`
+var labelPrinter = legacyLabelPrinter
+  ? new escpos.Printer(legacyLabelPrinter)
+  : undefined;
+
+const usbDetect = require("usb-detection");
+
+const { io } = require("socket.io-client");
+const os = require("os");
+
+const socket = io("http://localhost:3000", {
+  transportOptions: {
+    polling: {
+      extraHeaders: {
+        type: "local_service",
+        username: os.userInfo().username,
+        thermalprinter: Boolean(thermalPrinter),
+        labelprinter: Boolean(legacyLabelPrinter),
+      },
+    },
+  },
+});
+
+socket.onAny(manageCalls);
+
+usbDetect.startMonitoring();
+
+//Thermal Printer Monitoring
+
+usbDetect.on("add:8137", (device) => {
+  const USBLabelPrinter = devices.find(
+    (dev) => dev.deviceDescriptor.idVendor === 8137
+  );
+
+  legacyLabelPrinter = USBLabelPrinter
+    ? new escpos.USB(USBLabelPrinter)
+    : undefined;
+
+  labelPrinter = legacyLabelPrinter
+    ? new escpos.Printer(legacyLabelPrinter)
+    : undefined;
+  socket.emit("label_printer_add");
+});
+usbDetect.on("remove:8137", (device) => {
+  legacyLabelPrinter = undefined;
+  labelPrinter = undefined;
+  socket.emit("label_printer_remove");
+});
+
+usbDetect.on("add:1155", (device) => {
+  const USBPrinter = escpos.USB.findPrinter().find(
+    (dev) => dev.deviceDescriptor.idVendor === 1155
+  );
+  legacyPrinter = new escpos.USB(USBPrinter);
+  thermalPrinter = legacyPrinter
+    ? new escpos.Printer(legacyPrinter, thermalPrinterOptions)
+    : undefined;
+  socket.emit("thermal_printer_add");
+});
+
+usbDetect.on("remove:1155", (device) => {
+  legacyPrinter = undefined;
+  thermalPrinter = undefined;
+  socket.emit("thermal_printer_remove");
+});
+
+function manageCalls(eventName, args) {
+  escpos.Image.load("C:/logo2.png", (image) => {
+    switch (eventName) {
+      case "PRINT_EXPORT_DOC":
+        printExportDoc(image, args.products, args);
+        break;
+      case "PRINT_ASSEBLY_SHEET":
+        printAssemblySheet(args.warehouse, args.products);
+        break;
+      case "PRINT_PRODUCT_LABEL":
+        printLabel(args.barcode, args.quanInPackage, args.quanPrint);
+        break;
+
+      default:
+        break;
+    }
+  });
+}
+
+function printLabel(barcode, quanInPackage = 1, quanPrint = 1) {
+  legacyLabelPrinter.open((err) => {
+    legacyLabelPrinter.write(`
     GAPDETECT
     SPEED 1
     DENSITY 8
     DIRECTION 1
     CLS
-    TEXT 5,15,"2",0,1,1,"${brand}"
-    TEXT 5,40,"2",0,1,1,"${article}"
-    BARCODE 5,80,"${barcodeType}",50,1,0,${barcodeWidth},1,"${barcode}"
-    PRINT ${quan} 
+    QRCODE 55,25,M,5,M,0,M2,S2,"${barcode}|${quanInPackage}" 
+    PRINT ${quanPrint} 
     `);
-  })
+  });
 }
 
-function print3(name, brand, article, barcode) {
-  var iconv = new Iconv('UTF-8', 'CP866');
-  device2.open(() => {
-    device2.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
-    device2.write(new Uint8Array([0x1b, 0x74, 17])); // Установка кодировки
-    device2.write(new Uint8Array([0x1b, 0x21, 1])); // Установка шрифта
-    device2.write(new Uint8Array([0x1b, 0x7b, 1])); //Направление печати
-    device2.write(new Uint8Array([0x1b, 0x61, 0.48])); //margin
-    // device2.write(new Uint8Array([0x1d, 0x4c, 0,0])); //Отступ слева
-    // device2.write(new Uint8Array([0x1b, 0x4c])); // PAGE MODE
-    // device2.write(new Uint8Array([0x1b, 0x53])); // Standart mode
-    // device2.write(new Uint8Array([0x1b, 0x54, 3.51])); // DIRECTION
-    // device2.write(new Uint8Array([0x1d, 0x57, 104, 1])); // PAGE MODE
-    // device2.write(new Uint8Array([0x1d, 0x50, 100, 200])); // PAGE MODE
-    // device2.write(new Uint8Array([0x1b, 0x0c])); // PRINT IN PAGE MODE
-    // device2.write(new Uint8Array([0x1b, 0x57, 0, 0])); // PAGE MODE SET SIZE
-    device2.write(iconv.convert(article))
-    device2.write(new Uint8Array([0x0a])); //перенос строки
-    device2.write(iconv.convert(brand))
-    device2.write(new Uint8Array([0x0a])); //перенос строки
-    device2.write(iconv.convert(name))
-    device2.write(new Uint8Array([0x0a])); //перенос строки
-    device2.write(new Uint8Array([0x1d, 0x6b, 6,])); //перенос строки
-    device2.write(new Uint8Array([0x0a])); //перенос строки
-    device2.write(new Uint8Array([0x0a])); //перенос строки
-    device2.write(new Uint8Array([0x0a])); //перенос строки
-    
-    
-    // device2.write(new Uint8Array([0x0d]));
-    
-  })
+// BARCODE 5,80,"${barcodeType}",50,1,0,${barcodeWidth},1,"${barcode}"
+
+function printExportDoc(image, products, doc) {
+  let date = new Date(doc.date_created);
+  date = `${date.getDate()}.${
+    date.getMonth() + 1
+  }.${date.getFullYear()} ${date.toLocaleTimeString()}`;
+  legacyPrinter.open(function (error) {
+    legacyPrinter.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
+    legacyPrinter.write(new Uint8Array([0x1b, 0x74, 17]));
+    legacyPrinter.write(new Uint8Array([0x1b, 0x7b, 0])); //Направление печати
+    //IMAGE
+    thermalPrinter.align("ct").image(image, "D24");
+
+    //TEXT
+    thermalPrinter
+      .size(0.01, 0.01)
+      .marginRight(0)
+      .style("NORMAL")
+      .text("АВТОФОРВАРД")
+      .text("Магазин автозапчастин")
+      .text("ФОП ЧУБ О.В.")
+      .text("IД 2843414164\n")
+      .barcode(String(200000000000 + doc.id), "EAN13", 3, 30, "BLW", "A")
+      .text(`${date}\n`)
+      .text(`Товарний чек №${doc.id}\n`);
+    let sum = 0;
+    products.forEach((row) => {
+      sum += row.quan * row.price;
+      thermalPrinter
+        .align("LT")
+        .text(row.description)
+        .table([row.brand, `ID №${row.id}`])
+        .table([
+          `${row.quan} x ${row.price} грн`,
+          `${Math.round(row.quan * row.price * 100) / 100} грн`,
+        ]);
+    });
+
+    thermalPrinter.tableCustom([
+      { text: "Сума", style: "B" },
+      { text: `${Math.round(sum * 100) / 100} грн`, style: "B" },
+    ]);
+    if (doc.fiscalCode) {
+      thermalPrinter
+        .text(`фiск. номер чека: ${doc.fiscalCode}`)
+        .align("ct")
+        .qrimage(
+          doc.fiscalQR,
+          { type: "png", mode: "dhdw", size: 3 },
+          function (err) {
+            this.cut();
+            this.close();
+          }
+        );
+    } else {
+      thermalPrinter
+        .align("ct")
+        .qrimage(
+          `http://new.api.autof.com.ua/doc/export/check/${doc.id}`,
+          { type: "png", mode: "dhdw", size: 3 },
+          function (err) {
+            this.cut();
+            this.close();
+          }
+        );
+    }
+  });
 }
 
-// print3("Фильтр масляный", "MAHLE ORIGINAL", "OC90OF", generateEAN13(2))
+function printAssemblySheet(warehouse, products) {
+  let date = new Date();
+  date = `${date.getDate()}.${
+    date.getMonth() + 1
+  }.${date.getFullYear()} ${date.toLocaleTimeString()}`;
+  legacyPrinter.open(function (error) {
+    legacyPrinter.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
+    legacyPrinter.write(new Uint8Array([0x1b, 0x74, 17]));
+    legacyPrinter.write(new Uint8Array([0x1b, 0x7b, 0])); //Направление печати
 
-// printLabel("MAHLE ORIGINAL", "OC90OF", generateEAN13(2), 1, "EAN13")
-
-function print4(name, brand, article, barcode){
-  device2.open(err => {
-    device2.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
-    device2.write(new Uint8Array([0x1b, 0x74, 17]));
-    device2.write(new Uint8Array([0x1b, 0x7b, 1])); //Направление печати
-    device2.write(new Uint8Array([0x1b, 0x61, 0.48])); //margin
-    printer2
-    .size(0.01, 0.01)
-    .barcode('488888888888',"EAN13", 1, 50)
-    .text(article)
-    .text(brand)
-    .text(name)
-    .cut()
-    .close()
-  })
+    //TEXT
+    thermalPrinter
+      .size(0.01, 0.01)
+      .marginRight(0)
+      .style("NORMAL")
+      .text(`${date}\n`)
+      .text(`Сборочный лист\n`);
+    let sum = 0;
+    products.forEach((row) => {
+      sum += row.quan * row.price;
+      thermalPrinter
+        .align("LT")
+        .text(row.description)
+        .table([row.brand])
+        .table([row.article])
+        .table([`${row.quan} из ${row.nal}`, row.cell || ""]);
+    });
+    thermalPrinter.cut().close();
+  });
 }
 
-// print4("Фильтр масляный", "MAHLE ORGIGINAL", "OC90OF", "4009026000038");
-// printLabel("MAHLE", "OC90", "4820000000020", 1);
-
-
-function generateEAN13(id){
-
+function generateEAN13(id) {
   let newBarcode = String(482000000000 + id);
   let controlSumEven = 0;
   let controlSumOdd = 0;
 
   Array.from(String(newBarcode), (num, index) => {
-    if(Number(index + 1) % 2) {
-      controlSumEven += Number(num)
+    if (Number(index + 1) % 2) {
+      controlSumEven += Number(num);
     } else {
-      controlSumOdd += Number(num)
+      controlSumOdd += Number(num);
     }
-  })
+  });
   controlSumOdd = controlSumOdd * 3;
-  let constrolSum = (Math.ceil((controlSumEven + controlSumOdd) / 10) * 10) - (controlSumEven + controlSumOdd);
+  let constrolSum =
+    Math.ceil((controlSumEven + controlSumOdd) / 10) * 10 -
+    (controlSumEven + controlSumOdd);
 
-  return String(newBarcode).concat(String(constrolSum))
+  return String(newBarcode).concat(String(constrolSum));
 }
 
+// const device2 = new escpos.USB(
+//   devices.find(
+//     (dev) =>
+//       dev.deviceDescriptor.idVendor === 8137 &&
+//       dev.deviceDescriptor.idProduct === 8214
+//   )
+// );
+// const device = new escpos.USB(
+//   devices.find(
+//     (dev) =>
+//       dev.deviceDescriptor.idVendor === 1155 &&
+//       dev.deviceDescriptor.idProduct === 1803
+//   )
+// );
+// const options = { encoding: "CP866" };
+// const printer = new escpos.Printer(device, options);
+// const printer2 = new escpos.Printer(device2, options);
 
+// function print3(name, brand, article, barcode) {
+//   var iconv = new Iconv('UTF-8', 'CP866');
+//   device2.open(() => {
+//     device2.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
+//     device2.write(new Uint8Array([0x1b, 0x74, 17])); // Установка кодировки
+//     device2.write(new Uint8Array([0x1b, 0x21, 1])); // Установка шрифта
+//     device2.write(new Uint8Array([0x1b, 0x7b, 1])); //Направление печати
+//     device2.write(new Uint8Array([0x1b, 0x61, 0.48])); //margin
+//     // device2.write(new Uint8Array([0x1d, 0x4c, 0,0])); //Отступ слева
+//     // device2.write(new Uint8Array([0x1b, 0x4c])); // PAGE MODE
+//     // device2.write(new Uint8Array([0x1b, 0x53])); // Standart mode
+//     // device2.write(new Uint8Array([0x1b, 0x54, 3.51])); // DIRECTION
+//     // device2.write(new Uint8Array([0x1d, 0x57, 104, 1])); // PAGE MODE
+//     // device2.write(new Uint8Array([0x1d, 0x50, 100, 200])); // PAGE MODE
+//     // device2.write(new Uint8Array([0x1b, 0x0c])); // PRINT IN PAGE MODE
+//     // device2.write(new Uint8Array([0x1b, 0x57, 0, 0])); // PAGE MODE SET SIZE
+//     device2.write(iconv.convert(article))
+//     device2.write(new Uint8Array([0x0a])); //перенос строки
+//     device2.write(iconv.convert(brand))
+//     device2.write(new Uint8Array([0x0a])); //перенос строки
+//     device2.write(iconv.convert(name))
+//     device2.write(new Uint8Array([0x0a])); //перенос строки
+//     device2.write(new Uint8Array([0x1d, 0x6b, 6,])); //перенос строки
+//     device2.write(new Uint8Array([0x0a])); //перенос строки
+//     device2.write(new Uint8Array([0x0a])); //перенос строки
+//     device2.write(new Uint8Array([0x0a])); //перенос строки
 
-function printExportDoc(image, products, doc) {
-    let date = new Date(doc.date_created);
-    date = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.toLocaleTimeString()}`
-    device.open(function(error){
-        device.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
-        device.write(new Uint8Array([0x1b, 0x74, 17]));
-        device.write(new Uint8Array([0x1b, 0x7b, 0])); //Направление печати
-        //IMAGE
-        printer.align('ct').image(image, 'D24')
+//     // device2.write(new Uint8Array([0x0d]));
 
-        //TEXT
-        printer
-          .size(0.01, 0.01)
-          .marginRight(0)
-          .style("NORMAL")
-          .text("АВТОФОРВАРД")
-          .text("Магазин автозапчастин")
-          .text("ФОП ЧУБ О.В.")
-          .text("IД 2843414164\n")
-          .barcode(String(200000000000 + doc.id), 'EAN13', 3, 30, "BLW", "A")
-          .text(`${date}\n`)
-          .text(`Товарний чек №${doc.id}\n`)
-        let sum = 0;
-        products.forEach(row => {
-          sum += row.quan * row.price;
-          printer
-          .align("LT")
-          .text(row.description)
-          .table([row.brand, `ID №${row.id}`])
-          .table([`${row.quan} x ${row.price} грн`, `${Math.round(row.quan * row.price * 100) / 100} грн`])
-        })
-        
-        printer
-        .tableCustom([
-          {text: "Сумма", style: "B"},
-          {text: `${Math.round(sum * 100) / 100} грн`, style: "B"}
-        ])
-        if(doc.fiscalCode) {
-          printer.text(`фiск. номер чека: ${doc.fiscalCode}`)
-          .align('ct').qrimage(doc.fiscalQR, { type: 'png', mode: 'dhdw', size: 3 }, function(err){
-          this.cut()
-          this.close()
-        })
-        } else {
-          printer.align('ct').qrimage(`http://new.api.autof.com.ua/doc/export/check/${doc.id}`, { type: 'png', mode: 'dhdw', size: 3 }, function(err){
-          this.cut()
-          this.close()
-        });
-        }
-         
-      });
-}
-
-function printReturnDoProviderDoc(image, products, doc){
-let date = new Date(doc.date);
-    date = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.toLocaleTimeString()}`
-    device.open(function(error){
-        device.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
-        device.write(new Uint8Array([0x1b, 0x74, 17]));
-        device.write(new Uint8Array([0x1b, 0x7b, 0])); //Направление печати
-        //IMAGE
-        printer.align('ct').image(image, 'D24')
-
-        //TEXT
-        printer
-          .size(0.01, 0.01)
-          .marginRight(0)
-          .style("NORMAL")
-          .text("АВТОФОРВАРД")
-          .text("Магазин автозапчастин\n")
-          .barcode(String(200000000000 + doc.id), 'EAN13', 3, 30, "BLW", "A")
-          .text("")
-          .text(`Повернення постачальнику №${doc.id}\n`)
-          .text("Постачальник:")
-          .text(doc.full_provider.replace(/і/g, "i").replace(/І/g, 'I') + "\n")
-          .text("Покепець:")
-          .text("ФОП ЧУБ О.В.")
-          .text("IПН 2843414164\n")
-          .text(`${date}\n`)
-        let sum = 0;
-        products.forEach(row => {
-          sum += row.quan * row.price;
-          printer
-          .align("LT")
-          .text(row.description)
-          .table([row.brand, `ID №${row.id}`])
-          .text(`${row.quan} x ${row.price} грн`)
-          .text(`${Math.round(row.quan * row.price * 100) / 100} грн\n`)
-        })
-        
-        printer
-        .text(`Сумма : ${Math.round(sum * 100) / 100} грн`)
-        .qrimage(`http://new.api.autof.com.ua/doc/return-to-provider/pdf/${doc.id}`, function(err){
-            this.cut();
-            this.close();
-        });
-         
-      });
-}
-
-function printCheck(products, doc, type){
-  escpos.Image.load("C:/Users/Serge/projects/webSocketPrinter/logo2.png", image => {
-    if(image) {
-      switch(type){
-        case "EXPORT_DOC":
-          printExportDoc(image, products, doc)
-        break;
-        case "RETURN_TO_PROVIDER":
-          printReturnDoProviderDoc(image, products, doc)
-        break;
-      }
-    };
-  })
-}
-
-function printAssemblySheet(warehouse, products){
-  let date = new Date();
-    date = `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.toLocaleTimeString()}`
-    device.open(function(error){
-        device.write(new Uint8Array([0x1f, 0x1b, 0x1f, 0xfe, 0x01]));
-        device.write(new Uint8Array([0x1b, 0x74, 17]));
-        device.write(new Uint8Array([0x1b, 0x7b, 0])); //Направление печати
-
-        //TEXT
-        printer
-          .size(0.01, 0.01)
-          .marginRight(0)
-          .style("NORMAL")
-          .text(`${date}\n`)
-          .text(`Сборочный лист\n`)
-        let sum = 0;
-        products.forEach(row => {
-          sum += row.quan * row.price;
-          printer
-          .align("LT")
-          .text(row.description)
-          .table([row.brand])
-          .table([row.article])
-          .table([`${row.quan} из ${row.nal}`, row.cell])
-        })
-        printer.cut().close();
-         
-      });
-}
-
-
-function handleMessage(message){
-    const data = JSON.parse(message);
-    switch(data.action){
-        case "PRINT_EXPORT_DOC":
-            printCheck(data.data.products, data.data, "EXPORT_DOC")
-        break;
-
-        case "PRINT_RETURN_TO_PROVIDER":
-          printCheck(data.data.products, data.data, "RETURN_TO_PROVIDER");
-        break;
-
-        case "PRINT_LABEL":
-            printLabel(data.data.barcode, Number(data.data.quan))
-        break;
-
-        case "PRINT_ASSEBLY_SHEET":
-          printAssemblySheet(data.data.warehouse, data.data.products);
-          break;
-
-        default:
-            return 
-    }
-}
-
-
-function onConnect(wsClient) {
-    console.log("Пользователь подключился!")
-    wsClient.on('message', handleMessage)
-    wsClient.on('close', function() {
-      console.log('Пользователь отключился');
-    })
-  }
-
-wsServer.on('connection', onConnect);
+//   })
+// }

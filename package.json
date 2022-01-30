@@ -13,6 +13,8 @@
     "escpos-usb": "^3.0.0-alpha.4",
     "iconv": "^3.0.1",
     "node-thermal-printer": "^4.1.2",
+    "socket.io-client": "^4.4.1",
+    "usb-detection": "^4.13.0",
     "ws": "^8.2.2"
   },
   "optionalDependencies": {
