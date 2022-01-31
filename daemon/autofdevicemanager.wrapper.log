@@ -1,0 +1,2 @@
+2022-01-31 22:30:46 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-01-31 22:30:46 - Started 8196

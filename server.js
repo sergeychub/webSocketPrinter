@@ -2,6 +2,9 @@ escpos = require("escpos");
 escpos.USB = require("escpos-usb");
 devices = escpos.USB.findPrinter();
 
+var EventLogger = require("node-windows").EventLogger;
+var log = new EventLogger("AUTOF DEVICE MANAGER");
+
 var thermalPrinterOptions = { encoding: "CP866" };
 const USBThermalPrinter = devices.find(
   (dev) => dev.deviceDescriptor.idVendor === 1155
@@ -30,7 +33,7 @@ const usbDetect = require("usb-detection");
 const { io } = require("socket.io-client");
 const os = require("os");
 
-const socket = io("http://localhost:3000", {
+const socket = io("http://new.api.autof.com.ua", {
   transportOptions: {
     polling: {
       extraHeaders: {
@@ -42,6 +45,16 @@ const socket = io("http://localhost:3000", {
     },
   },
 });
+
+// log.info("Запускаем!");
+// log.info(JSON.stringify(socket));
+
+// socket.on("connect", () => {
+//   log.info(`connected`);
+// });
+// socket.on("disconnect", () => {
+//   log.info(`disconnected`);
+// });
 
 socket.onAny(manageCalls);
 
