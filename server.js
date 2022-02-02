@@ -126,7 +126,7 @@ function printLabel(barcode, quanInPackage = 1, quanPrint = 1) {
     DENSITY 8
     DIRECTION 1
     CLS
-    QRCODE 55,25,M,5,M,0,M2,S2,"${barcode}|${quanInPackage}" 
+    QRCODE 55,25,M,5,M,0,M2,S2,"${barcode}*${quanInPackage}" 
     PRINT ${quanPrint} 
     `);
   });
