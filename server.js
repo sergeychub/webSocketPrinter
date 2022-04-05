@@ -1,7 +1,10 @@
 escpos = require("escpos");
 escpos.USB = require("escpos-usb");
 devices = escpos.USB.findPrinter();
-
+var bmp = require("bmp-js");
+fs = require("fs");
+Jimp = require("jimp");
+jsQR = require("jsqr");
 var EventLogger = require("node-windows").EventLogger;
 var log = new EventLogger("AUTOF DEVICE MANAGER");
 
@@ -29,38 +32,11 @@ var labelPrinter = legacyLabelPrinter
   : undefined;
 
 const usbDetect = require("usb-detection");
-
-const { io } = require("socket.io-client");
-const os = require("os");
-
-const socket = io("http://new.api.autof.com.ua", {
-  transportOptions: {
-    polling: {
-      extraHeaders: {
-        type: "local_service",
-        username: os.userInfo().username,
-        thermalprinter: Boolean(thermalPrinter),
-        labelprinter: Boolean(legacyLabelPrinter),
-      },
-    },
-  },
-});
-
-// log.info("Запускаем!");
-// log.info(JSON.stringify(socket));
-
-// socket.on("connect", () => {
-//   log.info(`connected`);
-// });
-// socket.on("disconnect", () => {
-//   log.info(`disconnected`);
-// });
-
-socket.onAny(manageCalls);
+const express = require("express");
+const app = express();
+const port = 3333;
 
 usbDetect.startMonitoring();
-
-//Thermal Printer Monitoring
 
 usbDetect.on("add:8137", (device) => {
   const USBLabelPrinter = devices.find(
@@ -99,22 +75,29 @@ usbDetect.on("remove:1155", (device) => {
   socket.emit("thermal_printer_remove");
 });
 
-function manageCalls(eventName, args) {
-  escpos.Image.load("C:/logo2.png", (image) => {
-    switch (eventName) {
-      case "PRINT_EXPORT_DOC":
-        printExportDoc(image, args.products, args);
-        break;
-      case "PRINT_ASSEBLY_SHEET":
-        printAssemblySheet(args.warehouse, args.products);
-        break;
-      case "PRINT_PRODUCT_LABEL":
-        printLabel(args.barcode, args.quanInPackage, args.quanPrint);
-        break;
+async function index(imageBuffer) {
+  return new Promise(async (resolve, reject) => {
+    await Jimp.read(await imageBuffer, (err, image) => {
+      if (err) reject(err);
+      resolve(new Uint8ClampedArray(image.bitmap.data.buffer));
+    });
+  });
+}
 
-      default:
-        break;
-    }
+function testPrint() {
+  legacyLabelPrinter.open((err) => {
+    legacyLabelPrinter.write(
+      new Uint8Array([
+        0x53, 0x49, 0x5a, 0x45, 0x20, 0x34, 0x2c, 0x32, 0x0d, 0x0a, 0x47, 0x41,
+        0x50, 0x20, 0x30, 0x2c, 0x30, 0x0d, 0x0a, 0x43, 0x4c, 0x53, 0x0d, 0x0a,
+        0x42, 0x49, 0x54, 0x4d, 0x41, 0x50, 0x20, 0x32, 0x30, 0x30, 0x2c, 0x32,
+        0x30, 0x30, 0x2c, 0x32, 0x2c, 0x31, 0x36, 0x2c, 0x30, 0x2c, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x07, 0xff, 0x03, 0xff, 0x11, 0xff, 0x18, 0xff,
+        0x1c, 0x7f, 0x1e, 0x3f, 0x1f, 0x1f, 0x1f, 0x8f, 0x1f, 0xc7, 0x1f, 0xe3,
+        0x1f, 0xe7, 0x1f, 0xff, 0x1f, 0xff, 0x0d, 0x0a, 0x50, 0x52, 0x49, 0x4e,
+        0x54, 0x20, 0x31, 0x2c, 0x31, 0x0d, 0x0a,
+      ])
+    );
   });
 }
 
@@ -124,13 +107,16 @@ function printLabel(barcode, quanInPackage = 1, quanPrint = 1) {
     GAPDETECT
     SPEED 1
     DENSITY 8
-    DIRECTION 1
+    DIRECTION 0
     CLS
-    QRCODE 55,25,M,5,M,0,M2,S2,"${barcode}*${quanInPackage}" 
-    PRINT ${quanPrint} 
-    `);
+    BITMAP 0,0,28,130,1,${barcode.toString()}
+    PRINT ${quanPrint}`);
+    // legacyLabelPrinter.write();
+    // legacyLabelPrinter.write(`PRINT ${quanPrint}`);
   });
 }
+
+// QRCODE 55,25,M,5,M,0,M2,S2,"${barcode}*${quanInPackage}"
 
 // BARCODE 5,80,"${barcodeType}",50,1,0,${barcodeWidth},1,"${barcode}"
 
@@ -252,6 +238,14 @@ function generateEAN13(id) {
 
   return String(newBarcode).concat(String(constrolSum));
 }
+
+app.get("/", async (req, res) => {
+  res.send("Hello from service");
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
 
 // const device2 = new escpos.USB(
 //   devices.find(

@@ -49,3 +49,38 @@ TypeError: Converting circular structure to JSON
     at Function.Module._load (node:internal/modules/cjs/loader:822:12)
     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:81:12)
     at node:internal/main/run_main_module:17:47
+node:internal/child_process:412
+    throw errnoException(err, 'spawn');
+    ^
+
+Error: spawn EROFS
+    at ChildProcess.spawn (node:internal/child_process:412:11)
+    at spawn (node:child_process:698:9)
+    at Object.execFile (node:child_process:325:17)
+    at exec (node:child_process:226:25)
+    at write (C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\eventlog.js:67:3)
+    at logger.value [as warn] (C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\eventlog.js:185:9)
+    at launch (C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js:143:18)
+    at process.<anonymous> (C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js:201:5)
+    at process.emit (node:events:390:28)
+    at process._fatalException (node:internal/process/execution:164:25) {
+  errno: -4043,
+  code: 'EROFS',
+  syscall: 'spawn'
+}
+
+
+#
+# Fatal error in , line 0
+# Check failed: args[0].IsSmi().
+#
+#
+#
+#FailureMessage Object: 00000097DCB1E4D0
+ 1: 00007FF69C3A401F v8::internal::CodeObjectRegistry::~CodeObjectRegistry+112511
+ 2: 00007FF69C2C116F v8::CFunctionInfo::HasOptions+7055
+ 3: 00007FF69CF97302 V8_Fatal+162
+ 4: 00007FF69C854053 v8::internal::CompilationCache::IsEnabledScriptAndEval+21171
+ 5: 00007FF69CCF34B1 v8::internal::SetupIsolateDelegate::SetupHeap+494417
+ 6: 00007FF69CD858AF v8::internal::SetupIsolateDelegate::SetupHeap+1093455
+ 7: 000002825282F8D1 

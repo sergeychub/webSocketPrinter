@@ -1,2 +1,53 @@
 2022-01-31 22:30:46 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
 2022-01-31 22:30:46 - Started 8196
+2022-03-10 12:57:45 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-03-10 12:57:45 - Started 7396
+2022-03-13 15:56:15 - Stopping autofdevicemanager.exe
+2022-03-13 15:56:15 - ProcessKill 7396
+2022-03-13 15:56:16 - Shutdown exception
+Message:Идет завершение работы системы.
+
+Stacktrace:   в System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   в System.Management.ManagementScope.InitializeGuts(Object o)
+   в System.Management.ManagementScope.Initialize()
+   в System.Management.ManagementObjectSearcher.Initialize()
+   в System.Management.ManagementObjectSearcher.Get()
+   в winsw.WrapperService.GetChildPids(Int32 pid)
+   в winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   в winsw.WrapperService.StopIt()
+   в winsw.WrapperService.OnShutdown()
+2022-03-13 15:56:45 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-03-13 15:56:45 - Started 1684
+2022-03-16 16:09:39 - Stopping autofdevicemanager.exe
+2022-03-16 16:09:39 - ProcessKill 1684
+2022-03-16 16:09:39 - Shutdown exception
+Message:Идет завершение работы системы.
+
+Stacktrace:   в System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   в System.Management.ManagementScope.InitializeGuts(Object o)
+   в System.Management.ManagementScope.Initialize()
+   в System.Management.ManagementObjectSearcher.Initialize()
+   в System.Management.ManagementObjectSearcher.Get()
+   в winsw.WrapperService.GetChildPids(Int32 pid)
+   в winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   в winsw.WrapperService.StopIt()
+   в winsw.WrapperService.OnShutdown()
+2022-03-16 16:10:13 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-03-16 16:10:13 - Started 8208
+2022-03-19 12:13:32 - Stopping autofdevicemanager.exe
+2022-03-19 12:13:32 - ProcessKill 8208
+2022-03-19 12:13:32 - Shutdown exception
+Message:Удаленный вызов процедуры был отменен. (Исключение из HRESULT: 0x8007071A)
+Stacktrace:   в System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   в System.Management.ManagementScope.InitializeGuts(Object o)
+   в System.Management.ManagementScope.Initialize()
+   в System.Management.ManagementObjectSearcher.Initialize()
+   в System.Management.ManagementObjectSearcher.Get()
+   в winsw.WrapperService.GetChildPids(Int32 pid)
+   в winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   в winsw.WrapperService.StopIt()
+   в winsw.WrapperService.OnShutdown()
+2022-03-19 12:18:23 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-03-19 12:18:23 - Started 8012
+2022-03-29 15:46:05 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-03-29 15:46:05 - Started 7484
