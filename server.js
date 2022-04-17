@@ -5,6 +5,7 @@ var bmp = require("bmp-js");
 fs = require("fs");
 Jimp = require("jimp");
 jsQR = require("jsqr");
+cors = require("cors");
 var EventLogger = require("node-windows").EventLogger;
 var log = new EventLogger("AUTOF DEVICE MANAGER");
 
@@ -34,7 +35,10 @@ var labelPrinter = legacyLabelPrinter
 const usbDetect = require("usb-detection");
 const express = require("express");
 const app = express();
-const port = 3333;
+const port = 9999;
+
+app.use(cors());
+app.use(express.json());
 
 usbDetect.startMonitoring();
 
@@ -50,12 +54,10 @@ usbDetect.on("add:8137", (device) => {
   labelPrinter = legacyLabelPrinter
     ? new escpos.Printer(legacyLabelPrinter)
     : undefined;
-  socket.emit("label_printer_add");
 });
 usbDetect.on("remove:8137", (device) => {
   legacyLabelPrinter = undefined;
   labelPrinter = undefined;
-  socket.emit("label_printer_remove");
 });
 
 usbDetect.on("add:1155", (device) => {
@@ -66,40 +68,12 @@ usbDetect.on("add:1155", (device) => {
   thermalPrinter = legacyPrinter
     ? new escpos.Printer(legacyPrinter, thermalPrinterOptions)
     : undefined;
-  socket.emit("thermal_printer_add");
 });
 
 usbDetect.on("remove:1155", (device) => {
   legacyPrinter = undefined;
   thermalPrinter = undefined;
-  socket.emit("thermal_printer_remove");
 });
-
-async function index(imageBuffer) {
-  return new Promise(async (resolve, reject) => {
-    await Jimp.read(await imageBuffer, (err, image) => {
-      if (err) reject(err);
-      resolve(new Uint8ClampedArray(image.bitmap.data.buffer));
-    });
-  });
-}
-
-function testPrint() {
-  legacyLabelPrinter.open((err) => {
-    legacyLabelPrinter.write(
-      new Uint8Array([
-        0x53, 0x49, 0x5a, 0x45, 0x20, 0x34, 0x2c, 0x32, 0x0d, 0x0a, 0x47, 0x41,
-        0x50, 0x20, 0x30, 0x2c, 0x30, 0x0d, 0x0a, 0x43, 0x4c, 0x53, 0x0d, 0x0a,
-        0x42, 0x49, 0x54, 0x4d, 0x41, 0x50, 0x20, 0x32, 0x30, 0x30, 0x2c, 0x32,
-        0x30, 0x30, 0x2c, 0x32, 0x2c, 0x31, 0x36, 0x2c, 0x30, 0x2c, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x07, 0xff, 0x03, 0xff, 0x11, 0xff, 0x18, 0xff,
-        0x1c, 0x7f, 0x1e, 0x3f, 0x1f, 0x1f, 0x1f, 0x8f, 0x1f, 0xc7, 0x1f, 0xe3,
-        0x1f, 0xe7, 0x1f, 0xff, 0x1f, 0xff, 0x0d, 0x0a, 0x50, 0x52, 0x49, 0x4e,
-        0x54, 0x20, 0x31, 0x2c, 0x31, 0x0d, 0x0a,
-      ])
-    );
-  });
-}
 
 function printLabel(barcode, quanInPackage = 1, quanPrint = 1) {
   legacyLabelPrinter.open((err) => {
@@ -120,8 +94,9 @@ function printLabel(barcode, quanInPackage = 1, quanPrint = 1) {
 
 // BARCODE 5,80,"${barcodeType}",50,1,0,${barcodeWidth},1,"${barcode}"
 
-function printExportDoc(image, products, doc) {
+function printExportDoc(image, doc) {
   let date = new Date(doc.date_created);
+  let products = doc.products;
   date = `${date.getDate()}.${
     date.getMonth() + 1
   }.${date.getFullYear()} ${date.toLocaleTimeString()}`;
@@ -188,7 +163,8 @@ function printExportDoc(image, products, doc) {
   });
 }
 
-function printAssemblySheet(warehouse, products) {
+function printAssemblySheet(payload) {
+  const { warehouse, products } = payload;
   let date = new Date();
   date = `${date.getDate()}.${
     date.getMonth() + 1
@@ -239,8 +215,22 @@ function generateEAN13(id) {
   return String(newBarcode).concat(String(constrolSum));
 }
 
-app.get("/", async (req, res) => {
-  res.send("Hello from service");
+app.post("/print_export_doc", async (req, res) => {
+  const doc = req.body;
+  escpos.Image.load("C:/logo2.png", (image) => {
+    printExportDoc(image, doc);
+  });
+  res.send(null);
+});
+app.post("/print_assebly_sheet", async (req, res) => {
+  const data = req.body;
+  printAssemblySheet(data);
+  res.send(null);
+});
+app.post("/print_product_label", async (req, res) => {
+  const data = req.body;
+  printLabel(data);
+  res.send(null);
 });
 
 app.listen(port, () => {

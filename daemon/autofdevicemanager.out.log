@@ -6,3 +6,33 @@ Example app listening on port 3333
 Example app listening on port 3333
 Example app listening on port 3333
 Example app listening on port 3333
+TypeError: Cannot read properties of undefined (reading 'open')
+    at testPrint (C:\Users\Serge\projects\webSocketPrinter\server.js:88:22)
+    at C:\Users\Serge\projects\webSocketPrinter\server.js:250:5
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333
+Example app listening on port 3333

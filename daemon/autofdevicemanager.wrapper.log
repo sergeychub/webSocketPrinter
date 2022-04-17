@@ -51,3 +51,97 @@ Stacktrace:   в System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInter
 2022-03-19 12:18:23 - Started 8012
 2022-03-29 15:46:05 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
 2022-03-29 15:46:05 - Started 7484
+2022-04-05 21:02:35 - Stopping autofdevicemanager.exe
+2022-04-05 21:02:35 - ProcessKill 7484
+2022-04-05 21:02:35 - Found child process: 7512 Name: conhost.exe
+2022-04-05 21:02:35 - Found child process: 8584 Name: node.exe
+2022-04-05 21:02:36 - Stopping process 7512
+2022-04-05 21:02:36 - Send SIGINT 7512
+2022-04-05 21:02:36 - SIGINT to 7512 failed - Killing as fallback
+2022-04-05 21:02:36 - Stopping process 8584
+2022-04-05 21:02:36 - Send SIGINT 8584
+2022-04-05 21:02:36 - SIGINT to 8584 failed - Killing as fallback
+2022-04-05 21:02:36 - Stopping process 7484
+2022-04-05 21:02:36 - Send SIGINT 7484
+2022-04-05 21:02:36 - SIGINT to 7484 failed - Killing as fallback
+2022-04-05 21:02:36 - Finished autofdevicemanager.exe
+2022-04-05 21:02:40 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-04-05 21:02:40 - Started 17244
+2022-04-05 21:03:13 - Stopping autofdevicemanager.exe
+2022-04-05 21:03:13 - ProcessKill 17244
+2022-04-05 21:03:13 - Found child process: 24572 Name: conhost.exe
+2022-04-05 21:03:13 - Found child process: 4872 Name: node.exe
+2022-04-05 21:03:14 - Stopping process 24572
+2022-04-05 21:03:14 - Send SIGINT 24572
+2022-04-05 21:03:14 - SIGINT to 24572 failed - Killing as fallback
+2022-04-05 21:03:14 - Stopping process 4872
+2022-04-05 21:03:14 - Send SIGINT 4872
+2022-04-05 21:03:14 - SIGINT to 4872 failed - Killing as fallback
+2022-04-05 21:03:14 - Stopping process 17244
+2022-04-05 21:03:14 - Send SIGINT 17244
+2022-04-05 21:03:14 - SIGINT to 17244 failed - Killing as fallback
+2022-04-05 21:03:14 - Finished autofdevicemanager.exe
+2022-04-05 21:03:15 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-04-05 21:03:15 - Started 20256
+2022-04-09 18:34:49 - Stopping autofdevicemanager.exe
+2022-04-09 18:34:49 - ProcessKill 20256
+2022-04-09 18:34:49 - Shutdown exception
+Message:Идет завершение работы системы.
+
+Stacktrace:   в System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)
+   в System.Management.ManagementScope.InitializeGuts(Object o)
+   в System.Management.ManagementScope.Initialize()
+   в System.Management.ManagementObjectSearcher.Initialize()
+   в System.Management.ManagementObjectSearcher.Get()
+   в winsw.WrapperService.GetChildPids(Int32 pid)
+   в winsw.WrapperService.StopProcessAndChildren(Int32 pid)
+   в winsw.WrapperService.StopIt()
+   в winsw.WrapperService.OnShutdown()
+2022-04-09 18:35:21 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-04-09 18:35:21 - Started 7584
+2022-04-17 18:36:41 - Stopping autofdevicemanager.exe
+2022-04-17 18:36:41 - ProcessKill 7584
+2022-04-17 18:36:41 - Found child process: 7616 Name: conhost.exe
+2022-04-17 18:36:41 - Found child process: 30460 Name: node.exe
+2022-04-17 18:36:41 - Stopping process 7616
+2022-04-17 18:36:41 - Send SIGINT 7616
+2022-04-17 18:36:41 - SIGINT to 7616 failed - Killing as fallback
+2022-04-17 18:36:42 - Stopping process 30460
+2022-04-17 18:36:42 - Send SIGINT 30460
+2022-04-17 18:36:42 - SIGINT to 30460 failed - Killing as fallback
+2022-04-17 18:36:42 - Stopping process 7584
+2022-04-17 18:36:42 - Send SIGINT 7584
+2022-04-17 18:36:42 - SIGINT to 7584 failed - Killing as fallback
+2022-04-17 18:36:42 - Finished autofdevicemanager.exe
+2022-04-17 18:40:09 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-04-17 18:40:09 - Started 10472
+2022-04-17 18:40:45 - Stopping autofdevicemanager.exe
+2022-04-17 18:40:45 - ProcessKill 10472
+2022-04-17 18:40:45 - Found child process: 21704 Name: conhost.exe
+2022-04-17 18:40:45 - Found child process: 23040 Name: node.exe
+2022-04-17 18:40:46 - Stopping process 21704
+2022-04-17 18:40:46 - Send SIGINT 21704
+2022-04-17 18:40:46 - SIGINT to 21704 failed - Killing as fallback
+2022-04-17 18:40:46 - Stopping process 23040
+2022-04-17 18:40:46 - Send SIGINT 23040
+2022-04-17 18:40:46 - SIGINT to 23040 failed - Killing as fallback
+2022-04-17 18:40:46 - Stopping process 10472
+2022-04-17 18:40:46 - Send SIGINT 10472
+2022-04-17 18:40:46 - SIGINT to 10472 failed - Killing as fallback
+2022-04-17 18:40:46 - Finished autofdevicemanager.exe
+2022-04-17 18:40:49 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=4096 C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file C:\Users\Serge\projects\webSocketPrinter\server.js --scriptoptions= --log "Autof DEVICE MANAGER wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2022-04-17 18:40:49 - Started 28624
+2022-04-17 18:41:54 - Stopping autofdevicemanager.exe
+2022-04-17 18:41:54 - ProcessKill 28624
+2022-04-17 18:41:54 - Found child process: 11200 Name: conhost.exe
+2022-04-17 18:41:54 - Found child process: 22048 Name: node.exe
+2022-04-17 18:41:55 - Stopping process 11200
+2022-04-17 18:41:55 - Send SIGINT 11200
+2022-04-17 18:41:55 - SIGINT to 11200 failed - Killing as fallback
+2022-04-17 18:41:55 - Stopping process 22048
+2022-04-17 18:41:55 - Send SIGINT 22048
+2022-04-17 18:41:55 - SIGINT to 22048 failed - Killing as fallback
+2022-04-17 18:41:55 - Stopping process 28624
+2022-04-17 18:41:55 - Send SIGINT 28624
+2022-04-17 18:41:55 - SIGINT to 28624 failed - Killing as fallback
+2022-04-17 18:41:55 - Finished autofdevicemanager.exe

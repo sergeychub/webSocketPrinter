@@ -4,7 +4,7 @@ var Service = require("node-windows").Service;
 var svc = new Service({
   name: "Autof DEVICE MANAGER",
   description: "Autof DEVICE MANAGER",
-  script: "C:\\Users\\Serge\\projects\\webSocketPrinter\\server.js",
+  script: "C:\\Users\\Serge\\projects\\localservice\\dist\\index.js",
   nodeOptions: ["--harmony", "--max_old_space_size=4096"],
   //, workingDirectory: '...'
   //, allowServiceLogon: true

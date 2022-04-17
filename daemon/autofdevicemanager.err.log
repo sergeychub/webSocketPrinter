@@ -84,3 +84,38 @@ Error: spawn EROFS
  5: 00007FF69CCF34B1 v8::internal::SetupIsolateDelegate::SetupHeap+494417
  6: 00007FF69CD858AF v8::internal::SetupIsolateDelegate::SetupHeap+1093455
  7: 000002825282F8D1 
+C:\Users\Serge\projects\webSocketPrinter\server.js:53
+  socket.emit("label_printer_add");
+  ^
+
+ReferenceError: socket is not defined
+    at EventEmitter.<anonymous> (C:\Users\Serge\projects\webSocketPrinter\server.js:53:3)
+    at EventEmitter.emit (C:\Users\Serge\projects\webSocketPrinter\node_modules\eventemitter2\lib\eventemitter2.js:384:22)
+    at C:\Users\Serge\projects\webSocketPrinter\node_modules\usb-detection\index.js:67:12
+C:\Users\Serge\projects\webSocketPrinter\server.js:58
+  socket.emit("label_printer_remove");
+  ^
+
+ReferenceError: socket is not defined
+    at EventEmitter.<anonymous> (C:\Users\Serge\projects\webSocketPrinter\server.js:58:3)
+    at EventEmitter.emit (C:\Users\Serge\projects\webSocketPrinter\node_modules\eventemitter2\lib\eventemitter2.js:384:22)
+    at C:\Users\Serge\projects\webSocketPrinter\node_modules\usb-detection\index.js:79:12
+node:internal/child_process:412
+    throw errnoException(err, 'spawn');
+    ^
+
+Error: spawn EROFS
+    at ChildProcess.spawn (node:internal/child_process:412:11)
+    at spawn (node:child_process:698:9)
+    at Object.execFile (node:child_process:325:17)
+    at exec (node:child_process:226:25)
+    at write (C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\eventlog.js:67:3)
+    at logger.value [as warn] (C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\eventlog.js:185:9)
+    at launch (C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js:143:18)
+    at process.<anonymous> (C:\Users\Serge\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js:201:5)
+    at process.emit (node:events:390:28)
+    at process._fatalException (node:internal/process/execution:164:25) {
+  errno: -4043,
+  code: 'EROFS',
+  syscall: 'spawn'
+}
